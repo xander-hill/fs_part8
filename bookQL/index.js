@@ -150,11 +150,10 @@ const resolvers = {
         )
     },
     allAuthors: () => {
-        for (const book of books) {
-            let author = authors.find(a => a.name === book.author);
-            author.bookCount
-                ? author.bookCount += 1
-                : author.bookCount = 1
+        for (const author of authors) {
+            if (!author.bookCount) {
+                author.bookCount = books.filter(book => book.author === author.name).length
+            }
         }
         return authors
     },

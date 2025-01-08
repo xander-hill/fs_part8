@@ -16,11 +16,7 @@ const App = () => {
     pollInterval: 2000
   })
 
-  if (bookResult.loading && page === "books") {
-    return <div>loading...</div>
-  }
-
-  if (authorResult.loading && page === "authors") {
+  if (bookResult.loading || authorResult.loading) {
     return <div>loading...</div>
   }
 
