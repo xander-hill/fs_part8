@@ -101,6 +101,7 @@ const typeDefs = `
   type Query {
     bookCount: Int!
     authorCount: Int!
+    allBooks: [Book!]!
   }
 
   type Book {
@@ -119,7 +120,8 @@ const resolvers = {
         const authors = books.map(b => b.author)
         const uniqueAuthors = [...new Set(authors)]
         return uniqueAuthors.length
-    }
+    },
+    allBooks: () => books,
   }
 }
 
