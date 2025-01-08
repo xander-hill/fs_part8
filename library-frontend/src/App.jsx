@@ -2,9 +2,19 @@ import { useState } from "react";
 import Authors from "./components/Authors";
 import Books from "./components/Books";
 import NewBook from "./components/NewBook";
+import { ALL_AUTHORS } from "./queries";
+import { gql, useQuery } from '@apollo/client'
 
 const App = () => {
   const [page, setPage] = useState("authors");
+
+  const authorResult = useQuery(ALL_AUTHORS, {
+    pollInterval: 2000
+  })
+
+  if (authorResult.loading && page === "authors") {
+    return <div>loading...</div>
+  }
 
   return (
     <div>
@@ -14,7 +24,7 @@ const App = () => {
         <button onClick={() => setPage("add")}>add book</button>
       </div>
 
-      <Authors show={page === "authors"} />
+      <Authors show={page === "authors"} authors={authorResult.data.allAuthors}/>
 
       <Books show={page === "books"} />
 
