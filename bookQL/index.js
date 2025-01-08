@@ -184,7 +184,15 @@ const resolvers = {
             name: args.author, 
             bookCount: 0
           })
-          await author.save()
+          try {
+            await author.save()
+          } catch (error) {
+            throw new GraphQLError('Saving authorfailed', {
+                extensions: 'BAD_USER_INPUT',
+                invalidArgs: args.author,
+                error
+            })
+          }
         }
       
         const book = new Book({
