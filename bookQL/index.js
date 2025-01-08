@@ -1,6 +1,26 @@
 const { ApolloServer } = require('@apollo/server')
+const { GraphQLError } = require('graphql')
+const mongoose = require('mongoose')
+mongoose.set('strictQuery', false)
+const Author = require('./models/Author')
+const Book = require('./models/Book')
+const jwt = require('jsonwebtoken')
 const { v1: uuid } = require('uuid')
 const { startStandaloneServer } = require('@apollo/server/standalone')
+
+require('dotenv').config()
+
+const MONGODB_URI = process.env.MONGODB_URI
+
+console.log('connecting to', MONGODB_URI)
+
+mongoose.connect(MONGODB_URI)
+    .then(() => {
+        console.log('connectedto MongoDB')
+    })
+    .catch((error) => {
+        console.log('error connecting to MongoDB', error.message)
+    })
 
 let authors = [
   {
@@ -110,14 +130,14 @@ const typeDefs = `
     name: String!
     bookCount: Int
     born: Int
-    id: String!
+    id: ID!
   }
 
   type Book {
     title: String!
     published: Int!
-    author: String!
-    id: String!
+    author: Author!
+    id: ID!
     genres: [String!]!
   }
 
@@ -137,53 +157,64 @@ const typeDefs = `
 
 const resolvers = {
   Query: {
-    bookCount: () => books.length,
-    authorCount: () => authors.length,
-    allBooks: (root, args) => {
-        return (
-            args.author 
-                ? args.genre
-                    ? books.filter(b => (b.author === args.author) && (b.genres.includes(args.genre)))
-                    : books.filter(b => b.author === args.author)
-                : args.genre
-                    ? books.filter(b => b.genres.includes(args.genre))
-                    : books
-        )
+    bookCount: async () => Book.collection.countDocuments(),
+    authorCount: async () => Author.collection.countDocuments(),
+    allBooks: async (root, args) => {
+        // return (
+        //     args.author 
+        //         ? args.genre
+        //             ? books.filter(b => (b.author === args.author) && (b.genres.includes(args.genre)))
+        //             : books.filter(b => b.author === args.author)
+        //         : args.genre
+        //             ? books.filter(b => b.genres.includes(args.genre))
+        //             : books
+        // )
+        return Book.find({}).populate('author')
     },
-    allAuthors: () => {
-        for (const author of authors) {
-            if (!author.bookCount) {
-                author.bookCount = books.filter(book => book.author === author.name).length
-            }
-        }
-        return authors
+    allAuthors: async () => {
+        return Author.find({})
     },
   },
   Mutation: {
-    addBook: (root, args) => {
-        const book = {...args, id: uuid()}
-        books = books.concat(book)
-        if (!authors.includes(book.author)) {
-            const author = {
-                name: book.author,
-                bookCount: 1,
-                born: null,
-                id: uuid(),
-            }
-            authors = authors.concat(author)
-            return book
+    addBook: async (root, args) => {
+        let author = await Author.findOne({ name: args.author })
+        
+        if (!author) {
+          author = new Author({ 
+            name: args.author, 
+            bookCount: 0
+          })
+          await author.save()
         }
+      
+        const book = new Book({
+          title: args.title,
+          published: args.published,
+          author: author._id,
+          genres: args.genres,
+        })
+
+        await book.save()
+
+        author.bookCount += 1
+        await author.save()
+
         return book
     },
-    editAuthor: (root, args) => {
-        const author = authors.find(a => a.name === args.name)
-        if (!author) {
-            return null
-        }
+    editAuthor: async (root, args) => {
+        const author = await Author.findOne({ name: args.name })
+        author.born = args.born
 
-        const updatedAuthor = {...author, born: args.born}
-        authors = authors.map(a => a.name === args.name ? updatedAuthor : a)
-        return updatedAuthor
+        try {
+            await author.save()
+        } catch (error) {
+            throw new GraphQLError('Saving born failed', {
+                extensions: 'BAD_USER_INPUT',
+                invalidArgs: args.name,
+                error
+            })
+        }
+        return author
     }
   }
 }
