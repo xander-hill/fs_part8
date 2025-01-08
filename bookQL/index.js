@@ -99,13 +99,27 @@ let books = [
 
 const typeDefs = `
   type Query {
-    dummy: Int
+    bookCount: Int!
+    authorCount: Int!
+  }
+
+  type Book {
+    title: String!
+    published: Int!
+    author: String!
+    id: String!
+    genres: [String!]!
   }
 `
 
 const resolvers = {
   Query: {
-    dummy: () => 0
+    bookCount: () => books.length,
+    authorCount: () => {
+        const authors = books.map(b => b.author)
+        const uniqueAuthors = [...new Set(authors)]
+        return uniqueAuthors.length
+    }
   }
 }
 
