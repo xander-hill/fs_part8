@@ -110,6 +110,7 @@ const typeDefs = `
     name: String!
     bookCount: Int
     born: Int
+    id: String!
   }
 
   type Book {
@@ -166,7 +167,8 @@ const resolvers = {
             const author = {
                 name: book.author,
                 bookCount: 1,
-                born: null
+                born: null,
+                id: uuid(),
             }
             authors = authors.concat(author)
             return book
