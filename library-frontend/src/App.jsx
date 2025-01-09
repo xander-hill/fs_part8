@@ -8,13 +8,11 @@ import { gql, useQuery } from '@apollo/client'
 const App = () => {
   const [page, setPage] = useState("authors");
 
-  const authorResult = useQuery(ALL_AUTHORS, {
-    pollInterval: 2000
-  })
+  const authorResult = useQuery(ALL_AUTHORS)
+  console.log("Author data:", authorResult)
 
-  const bookResult = useQuery(ALL_BOOKS, {
-    pollInterval: 2000
-  })
+  const bookResult = useQuery(ALL_BOOKS)
+  console.log("Book data", bookResult)
 
   if (bookResult.loading || authorResult.loading) {
     return <div>loading...</div>
