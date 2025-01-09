@@ -5,6 +5,7 @@ import NewBook from "./components/NewBook";
 import { ALL_AUTHORS, ALL_BOOKS } from "./queries";
 import { gql, useQuery, useApolloClient } from '@apollo/client'
 import LoginForm from "./components/LoginForm";
+import Recommended from './components/Recommended'
 
 const App = () => {
   const [page, setPage] = useState("authors")
@@ -49,6 +50,7 @@ const App = () => {
         <button onClick={() => setPage("authors")}>authors</button>
         <button onClick={() => setPage("books")}>books</button>
         <button onClick={() => setPage("add")}>add book</button>
+        <button onClick={() => setPage("recommended")}>recommended</button>
         <button onClick={logout}>logout</button>
       </div>
 
@@ -57,6 +59,7 @@ const App = () => {
       <Books show={page === "books"} books={bookResult.data.allBooks}/>
 
       <NewBook show={page === "add"} />
+      <Recommended show={page === "recommended"} books={bookResult.data.allBooks}/>
     </div>
   );
 };

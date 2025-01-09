@@ -189,6 +189,16 @@ const resolvers = {
         return Author.find({})
     },
     me: (root, args, context) => {
+      const currentUser = context.currentUser
+      console.log(currentUser)
+
+      if (!currentUser) {
+        throw new GraphQLError('not authenticated', {
+          extensions: {
+            code: 'BAD_USER_INPUT'
+          }
+        })
+      }
         return context.currentUser
     },
   },
@@ -210,7 +220,6 @@ const resolvers = {
             name: args.author, 
             bookCount: 0
           })
-          console.log(author)
           try {
             await author.save()
           } catch (error) {

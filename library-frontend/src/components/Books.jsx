@@ -2,7 +2,6 @@ import { useState } from "react"
 
 const Books = (props) => {
   const [genre, setGenre] = useState(null)
-  console.log(props.books)
 
   const filteredBooks = 
     genre 
