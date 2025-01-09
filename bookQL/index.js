@@ -180,15 +180,9 @@ const resolvers = {
     bookCount: async () => Book.collection.countDocuments(),
     authorCount: async () => Author.collection.countDocuments(),
     allBooks: async (root, args) => {
-        // return (
-        //     args.author 
-        //         ? args.genre
-        //             ? books.filter(b => (b.author === args.author) && (b.genres.includes(args.genre)))
-        //             : books.filter(b => b.author === args.author)
-        //         : args.genre
-        //             ? books.filter(b => b.genres.includes(args.genre))
-        //             : books
-        // )
+        if (args.genre) {
+          return Book.find({ genres: args.genre }).populate('author')
+        }
         return Book.find({}).populate('author')
     },
     allAuthors: async () => {
@@ -216,6 +210,7 @@ const resolvers = {
             name: args.author, 
             bookCount: 0
           })
+          console.log(author)
           try {
             await author.save()
           } catch (error) {
@@ -233,15 +228,20 @@ const resolvers = {
           author: author._id,
           genres: args.genres,
         })
+        console.log(book)
 
         await book.save()
 
         author.bookCount += 1
         await author.save()
 
-        return book
+        console.log(author)
+
+        const populatedBook = book.populate('author')
+
+        return populatedBook
     },
-    editAuthor: async (root, args) => {
+    editAuthor: async (root, args, context) => {
         const author = await Author.findOne({ name: args.name })
         author.born = args.born
         const currentUser = context.currentUser

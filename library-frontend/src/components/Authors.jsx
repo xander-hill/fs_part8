@@ -1,13 +1,28 @@
 import { useEffect, useState } from "react"
 import { useMutation } from "@apollo/client"
 
-import { EDIT_BORN } from "../queries"
+import { ALL_AUTHORS, EDIT_BORN } from "../queries"
 
 const Authors = (props) => {
   const [name, setName] = useState('')
   const [born, setBorn] = useState('')
 
-  const [ changeBorn, result] = useMutation(EDIT_BORN)
+  const [ changeBorn, result] = useMutation(EDIT_BORN, {
+    onError: (error) => {
+      console.error(error)
+    },
+    update: (cache, response) => {
+      cache.updateQuery({ query: ALL_AUTHORS }, ({ allAuthors }) => {
+        return {
+          allAuthors: allAuthors.map(a => 
+            a.name === response.data.editAuthor.name
+              ? response.data.editAuthor
+              : a
+          )
+        }
+      })
+    }
+  })
 
   const submit = (event) => {
     event.preventDefault()
