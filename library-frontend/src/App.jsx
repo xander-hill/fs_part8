@@ -2,10 +2,26 @@ import { useState } from "react";
 import Authors from "./components/Authors";
 import Books from "./components/Books";
 import NewBook from "./components/NewBook";
-import { ALL_AUTHORS, ALL_BOOKS } from "./queries";
-import { gql, useQuery, useApolloClient } from '@apollo/client'
+import { ALL_AUTHORS, ALL_BOOKS, BOOK_ADDED } from "./queries";
+import { useQuery, useApolloClient, useSubscription } from '@apollo/client'
 import LoginForm from "./components/LoginForm";
 import Recommended from './components/Recommended'
+
+export const updateCache = (cache, query, addedBook) => {
+  const uniqByName = (a) => {
+    let seen = new Set()
+    return a .filter((item) => {
+      let k = item
+      return seen.has(k) ? false : seen.add(k)
+    })
+  }
+
+  cache.updateQuery(query, ({ allBooks }) => {
+    return {
+      allBooks: uniqByName(allBooks.concat(addedBook))
+    }
+  })
+}
 
 const App = () => {
   const [page, setPage] = useState("authors")
@@ -15,6 +31,14 @@ const App = () => {
   const authorResult = useQuery(ALL_AUTHORS)
 
   const bookResult = useQuery(ALL_BOOKS)
+
+  useSubscription(BOOK_ADDED, {
+    onData:({ data, client }) => {
+      const addedBook = data.data.bookAdded
+      window.alert(`${addedBook.title} added!`)
+      updateCache(client.cache, { query: ALL_BOOKS }, addedBook)
+    }
+  })
 
   if (bookResult.loading || authorResult.loading) {
     return <div>loading...</div>

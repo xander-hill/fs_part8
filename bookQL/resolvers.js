@@ -78,7 +78,7 @@ const resolvers = {
   
           console.log(author)
   
-          const populatedBook = book.populate('author')
+          const populatedBook = await book.populate('author')
 
           pubsub.emit('BOOK_ADDED', { bookAdded: populatedBook })
   

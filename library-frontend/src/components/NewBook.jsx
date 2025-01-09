@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { gql, useMutation } from '@apollo/client'
+import { useMutation } from '@apollo/client'
 import { CREATE_BOOK, ALL_BOOKS } from '../queries'
+import { updateCache } from '../App'
 
 
 const NewBook = (props) => {
@@ -16,11 +17,13 @@ const NewBook = (props) => {
       console.log(messages)
     },
     update: (cache, response) => {
-      cache.updateQuery({ query: ALL_BOOKS }, ({ allBooks }) => {
-        return {
-          allBooks: allBooks.concat(response.data.createBook)
-        }
-      })
+      //updateCache(cache, { query: ALL_BOOKS }, response.data.addBook)
+    },onCompleted: () => {
+      setTitle('')
+      setPublished('')
+      setAuthor('')
+      setGenres([])
+      setGenre('')
     }
   })
 
@@ -30,18 +33,9 @@ const NewBook = (props) => {
 
   const submit = async (event) => {
     event.preventDefault()
-
-    console.log('add book...')
-
     const intPublished = parseInt(published)
-
-    createBook({ variables: { title, published: intPublished, author, genres }})
-
-    setTitle('')
-    setPublished('')
-    setAuthor('')
-    setGenres([])
-    setGenre('')
+    
+    createBook({ variables: { title, published: intPublished, author: author, genres }})
   }
 
   const addGenre = () => {
